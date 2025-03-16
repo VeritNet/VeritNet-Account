@@ -115,7 +115,6 @@ async function encryptPwd(password){
 
 async function registration(data, cfToken){
   var content = {
-    timestamp: Date.now(),
     email: data.email,
     pwd: data.password,
     challengeToken: cfToken
