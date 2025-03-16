@@ -122,7 +122,7 @@ async function registration(data, cfToken){
   }
   const EncryptedData = await encryptData(JSON.stringify(content));
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', 'https://s.binklings.com/account/register?data=' + EncryptedData.ciphertext + '&k=' + EncryptedData.encryptedAesData, true);
+  xhr.open('GET', 'https://s.veritnet.com/account/register?data=' + EncryptedData.ciphertext + '&k=' + EncryptedData.encryptedAesData, true);
   xhr.onreadystatechange = function() {
     if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
       if(xhr.responseText.includes('::')){
@@ -132,7 +132,7 @@ async function registration(data, cfToken){
       }
     }else{
       if(xhr.readyState === XMLHttpRequest.DONE){
-        ce('Something went wrong. We tried to send a connection request to the BINKLINGS server, but received an error message: '+xhr.readyState+' '+xhr.responseText+' . If the problem continues, please contact support@binklings.com.');
+        ce('Something went wrong. We tried to send a connection request to the VeritNet server, but received an error message: '+xhr.readyState+' '+xhr.responseText+' . If the problem continues, please contact support@veritnet.com.');
       }
     }
   };

@@ -194,19 +194,19 @@
       }
     }
   </style>
-  <title>Login | BINKLINGS</title>
+  <title>Login | VeritNet</title>
 </head>
 <body>
     <div align="center" id="mainDiv">
         <br>
-        <h2>BINKLINGS</h2>
+        <h2>VeritNet</h2>
         <h4>Login To Your Account</h4>
         <input id="login_email" class="input" placeholder="Email" />
         <br><br>
         <input id="login_password" type="password" class="input" placeholder="Password" />
         <br><br>
         <div style="width: 100;">
-            <button class="btn" onclick="redirect('https://www.binklings.com/account/register')"><b>Register</b></button>
+            <button class="btn" onclick="redirect('https://account.veritnet.com/register')"><b>Register</b></button>
             <button class="btn" onclick="login()"><b>Login</b></button>
         </div>
         <br><br>
@@ -224,7 +224,7 @@ var backUrl;
 if(params.get("w")){
   backUrl = params.get("w");
 }else{
-  backUrl = "https://binklings.com";
+  backUrl = "https://veritnet.com";
 }
 
 
@@ -366,7 +366,7 @@ async function login(){
     loadDiv.className = "loading-div-load";
     document.body.appendChild(loadDiv);
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', 'https://s.binklings.com/account/login?data=' + EncryptedData.ciphertext + '&k=' + EncryptedData.encryptedAesData, true);
+    xhr.open('GET', 'https://s.veritnet.com/account/login?data=' + EncryptedData.ciphertext + '&k=' + EncryptedData.encryptedAesData, true);
     xhr.onreadystatechange = function() {
       if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
         if(xhr.responseText.includes('::')){
