@@ -205,6 +205,8 @@
         <br><br>
         <input id="login_password" type="password" class="input" placeholder="Password" />
         <br><br>
+        <div id='cl' style='border: none;'></div>
+        <br>
         <div style="width: 100;">
             <button class="btn" onclick="redirect('https://account.veritnet.com/register')"><b>Register</b></button>
             <button class="btn" onclick="login()"><b>Login</b></button>
@@ -226,6 +228,9 @@ if(params.get("w")){
 }else{
   backUrl = "https://veritnet.com";
 }
+
+
+var tk = "";
 
 
 const rsaPublicKeyString = "-----BEGIN PUBLIC KEY----- MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAvvYxuX1++YmYDe4HInjn HMK/kNPenenR4WedAimsz9V6dEcx6vi6ut0rQ4yTnKGbnEBhImneEVQr4ark/loE sVdl4hW2+UukueRBuKlB7cHsbVG2ipIkTFXPrBGWsEVdsOrkMxVRSRr8QTXucZ9n 5jhrMFrI/OcLcAWEuKGcqvsvNavt/zxiyP6kRsofdF+dkHZpc4uBEiYC7xy3eXpF 16bqNbnZkLb8RS+Uwyk/ZHAPcaQrrGg3XYu97iKfDpFDigtp0ViNGLjnwj1q6Nxf 0JSd53ybsx1LOq7S2BLaXURPCoMYh8kL4ZaMKVhIluaSJVtZl1yNV7Hyysu13wZW FxqsTHW/J+cSflNJfxrvUQrreuxx5vvxJi8frja/obZeixgMPy0YplsBLGJu/nEz Be/eBur5plPStpxphGG+ZWb0ICnUOQvIIPyhjiaPW421M61PfoQPSScp1cPD2gAe /SwkAhu6LoN5pmQ3FwxJudFykoKPsbuF823Rsf9rbi9D+ItlxOh8XbDYaA49mO/Z fmUxCchOFdA8DGl4nJ8PZcY5yiCB2iSDARHDdLSl1w9W18TJ/3NbZryykhTAzksL AvqFSvv2M5xR6txQBpBvBOEFKDZNBKf94rFDKWhoJEvBhiU8b8obpvnBrPIQXZmm V0FXakM5YxZtfwG/6qJv/hMCAwEAAQ== -----END PUBLIC KEY-----";
@@ -357,55 +362,75 @@ async function login(){
   var content = {
     email: document.getElementById('login_email').value,
     pwd: await SHA512(document.getElementById('login_password').value),
-    uuid: crypto.randomUUID()
+    uuid: crypto.randomUUID(),
+    challenge: tk
   }
   if(content.email.includes("@") && content.email.includes(".") && document.getElementById('login_password').value.length >= 8){
-    const EncryptedData = await encryptData(JSON.stringify(content));
-    var loadDiv = document.createElement('div');
-    loadDiv.innerHTML = '<div style="width: 100%; height: 100%; top: 45%; position: relative; color: white" align="center"><div id="loading"><div></div><div></div><div></div></div><h5>Loading</h5></div>';
-    loadDiv.className = "loading-div-load";
-    document.body.appendChild(loadDiv);
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', 'https://sa.veritnet.com/login?data=' + EncryptedData.ciphertext + '&k=' + EncryptedData.encryptedAesData, true);
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-        if(xhr.responseText.includes('::')){
-          var tokenDataEncrypted = xhr.responseText.split('::')[1].replace(new RegExp(" ", 'g'), "+");
-          var aesDataJson = JSON.parse(EncryptedData.aesData);
-          decryptDataAES(tokenDataEncrypted, aesDataJson.key, aesDataJson.iv).then((tokenData)=>{
-            tokenDataJson = JSON.parse(tokenData);
-            if(tokenDataJson.id == content.uuid){
-              if(docCookies.hasItem("email")){
-                docCookies.removeItem("email");
+    if(tk == ""){
+      alert("Please complete the captcha");
+    }else{
+      const EncryptedData = await encryptData(JSON.stringify(content));
+      var loadDiv = document.createElement('div');
+      loadDiv.innerHTML = '<div style="width: 100%; height: 100%; top: 45%; position: relative; color: white" align="center"><div id="loading"><div></div><div></div><div></div></div><h5>Loading</h5></div>';
+      loadDiv.className = "loading-div-load";
+      document.body.appendChild(loadDiv);
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'https://sa.veritnet.com/login?data=' + EncryptedData.ciphertext + '&k=' + EncryptedData.encryptedAesData, true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+          if(xhr.responseText.includes('::')){
+            var tokenDataEncrypted = xhr.responseText.split('::')[1].replace(new RegExp(" ", 'g'), "+");
+            var aesDataJson = JSON.parse(EncryptedData.aesData);
+            decryptDataAES(tokenDataEncrypted, aesDataJson.key, aesDataJson.iv).then((tokenData)=>{
+              tokenDataJson = JSON.parse(tokenData);
+              if(tokenDataJson.id == content.uuid){
+                if(docCookies.hasItem("email")){
+                  docCookies.removeItem("email");
+                }
+                if(docCookies.hasItem("token")){
+                  docCookies.removeItem("token");
+                }
+                docCookies.setItem("email", content.email, 2592000, "/", null, true);
+                docCookies.setItem("token", tokenDataJson.token, 2592000, "/", null, true);
+                document.body.removeChild(loadDiv);
+                redirect(backUrl);
+              }else{
+                alert("Warning: Your network connection may no longer be secured. The data returned by the server has been tampered with and cannot be verified");
+                console.error(tokenDataJson.id + " and " + content.uuid + " does not match.");
               }
-              if(docCookies.hasItem("token")){
-                docCookies.removeItem("token");
-              }
-              docCookies.setItem("email", content.email, 2592000, "/", null, true);
-              docCookies.setItem("token", tokenDataJson.token, 2592000, "/", null, true);
+            }).catch((error)=>{
+              console.error(error);
+              alert("Something went wrong: ", error);
               document.body.removeChild(loadDiv);
-              redirect(backUrl);
-            }else{
-              alert("Warning: Your network connection may no longer be secured. The data returned by the server has been tampered with and cannot be verified");
-              console.error(tokenDataJson.id + " and " + content.uuid + " does not match.");
-            }
-          }).catch((error)=>{
-            console.error(error);
-            alert("Something went wrong: ", error);
+            });
+          }else{
             document.body.removeChild(loadDiv);
-          });
-        }else{
-          document.body.removeChild(loadDiv);
-          alert("Error: " + xhr.responseText);
-          console.log(xhr.responseText);
+            alert("Error: " + xhr.responseText);
+            console.log(xhr.responseText);
+          }
         }
       }
+      xhr.send();
     }
-    xhr.send();
   }else{
     alert("Invalid User Info");
   }
 }
+
+
+
+turnstile.ready(function () {
+  turnstile.render('#cl', {
+    sitekey: '0x4AAAAAAAcJLhtsZtmr4h5T',
+    callback: function(token) {
+      tk = token;
+      console.log(`Challenge Success`);
+      registration(user, tk).catch((err) => {
+        console.error('err: ', err);
+      });
+    },
+  });
+});
 
 
 
