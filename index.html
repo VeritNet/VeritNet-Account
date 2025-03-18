@@ -363,7 +363,7 @@ async function login(){
     email: document.getElementById('login_email').value,
     pwd: await SHA512(document.getElementById('login_password').value),
     uuid: crypto.randomUUID(),
-    challenge: tk
+    challengeToken: tk
   }
   if(content.email.includes("@") && content.email.includes(".") && document.getElementById('login_password').value.length >= 8){
     if(tk == ""){
