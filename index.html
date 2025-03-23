@@ -406,6 +406,19 @@ async function login(){
           }else{
             document.body.removeChild(loadDiv);
             alert("Error: " + xhr.responseText);
+            if(xhr.responseText == "Failed to verify that you are a real person."){
+              document.getElementById('cl').innerHTML = '';
+              turnstile.render('#cl', {
+                sitekey: '0x4AAAAAAAcJLhtsZtmr4h5T',
+                callback: function(token) {
+                  tk = token;
+                  console.log(`Challenge Success`);
+                  registration(user, tk).catch((err) => {
+                    console.error('err: ', err);
+                  });
+                },
+              });
+            }
             console.log(xhr.responseText);
           }
         }
